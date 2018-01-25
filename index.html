@@ -1,0 +1,1056 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vue & React</title>
+  <link rel="stylesheet" href="css/reveal.css">
+  <link rel="stylesheet" href="css/theme/league.css">
+  <!-- Theme used for syntax highlighting of code -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+  <!-- Printing and PDF exports -->
+  <style>
+    .reveal h1 { padding-top: 1.5em; font-size: 2.6em;}
+    .reveal pre code { max-height: 650px;}
+    .reveal .slides > section, .reveal .slides > section > section { bottom: 0; padding-bottom: 0;}
+    .reveal section img { max-height: 600px;}
+    .reveal .link { margin: 0 auto; width: 90%; font-size: 16px; text-align: left; }
+    .reveal blockquote { box-sizing: border-box; padding: 10px; width: 90%; font-family: monospace; font-size: 60%; text-align: left;}
+    .reveal ul { display: block; font-size: 85%;}
+    .reveal table th { text-align: center;}
+    .reveal table th, .reveal table td { padding: 0.8em 0.2em; border-right: 1px solid; font-size: 80%; }
+  </style>
+  <script>
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+    document.getElementsByTagName('head')[0].appendChild(link);
+  </script>
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section data-markdown>
+        # Vue & React 对比
+        by 陈晓波
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          ## 主要内容
+
+          1. 介绍
+          - 实例
+          - 模板语法
+          - 组件
+          - 生命周期
+          - 组件通讯
+          - 其他特性
+          - 完整模板
+          - 总结
+
+          note: 调研。只对比了核心库，路由、状态、服务端渲染、原生能力等未对比。
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          ### 介绍
+
+          <table>
+            <tr>
+              <th></th>
+              <th>Vue</th>
+              <th>React</th>
+            </tr>
+            <tr>
+              <td>Github</td>
+              <td>vuejs/vue</td>
+              <td>facebook/react</td>
+            </tr>
+            <tr>
+              <td>Stars</td>
+              <td>81,316</td>
+              <td>86,605</td>
+            </tr>
+            <tr>
+              <td>VERSION</td>
+              <td>v2.5.13</td>
+              <td>v16.2.0</td>
+            </tr>
+            <tr>
+              <td>Browser Support</td>
+              <td>IE9</td>
+              <td>IE9</td>
+            </tr>
+          </table>
+
+          --
+          #### 性能对比
+          ![vue2.0](./images/vue2.0.png)
+
+          --
+          ![](./images/performance-comparisons.jpg)
+
+          渲染 10,000个列表项100次，将每一个参照项目都分别运行 20 次并取最好的结果
+          <p class="link">
+            <a href="https://github.com/chrisvfritz/vue-render-performance-comparisons">性能对比项目</a>
+          </p>
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 实例 —— Vue
+
+          ```
+          // 模板一
+          <div id="app">
+            {{ message }}
+          </div>
+
+          const app = new Vue({
+            el: '#app',
+            data: {
+              message: 'Hello Vue!'
+            }
+            // ...
+          })
+          ```
+
+          ```
+          // 模板二
+          <div id="app"></div>
+
+          const app = new Vue({
+            el: '#app',
+            template: '<div class="app">{{ message }}</div>',
+            data: {
+              message: 'Hello Vue!'
+            }
+          })
+          ```
+
+          note: 模板二：内容将被忽略，除非有分发插槽。
+
+          --
+          #### 实例 —— React
+
+          ```html
+          <div id="root">replace</div>
+          ```
+
+          ```js
+          class Welcome extends React.Component {
+            constructor(props) {
+              super(props);
+              this.state = {
+                message: 'Hello React!'
+              };
+            }
+
+            render() {
+              return <h1>{ this.state.message }</h1>;
+            }
+          }
+
+          ReactDOM.render(
+            <Welcome />,
+            document.getElementById('root')
+          );
+          ```
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 模板语法 —— Vue
+
+          ```html
+          <template>
+            // 数据绑定
+            <div>{{name}}</div>
+            <div v-text="name"></div>
+            // HTML
+            <div v-html="rawHtml"></div>
+            // 表达式
+            <div>{{ ok ? 'YES' : 'NO' }}</div>
+            // 指令: text, html, bind, on, show, if, else, model, for, pre, once
+            <div v-bind:id="dynamicId"></div>
+            <a :href="url">链接</a>
+            <div :class="['item', foo]"></div>
+            <div :style="{marginTop: '10px'}"></div>
+            // 过滤器
+            <div :title="rawTitle | filter">{{ date | filterA | filterB }}</div>
+            // 事件
+            <a v-on:click="doSomething">...</a>
+            <foo @action="onAction"></foo>
+            // 事件修饰符: stop, prevent, self, capture, once
+            <a @click.stop.prevent></a>
+            // 按键修饰符: enter, tab, delete, esc, space, up, down, left, right
+            <input @keyup.enter="submit">
+            // 系统修饰键: ctrl, alt, shift, meta
+            // v-type:arg.modifiers="expression"
+          </template>
+          ```
+          
+          note: 指令：当表达式的值改变时，将响应式地作用于 DOM。
+
+          修饰符：指出一个指令应该以特殊方式绑定。
+
+          自定义指令。指令作用是将数据的变化转化为DOM行为。
+
+          --
+          #### JSX语法 —— React
+
+          ```
+          // define: filter, filterA, filterB
+          class CompName extends React.Component {
+            render () {
+              // define: name, rawHtml, ok, dynamicId ...
+
+              return (
+                // 数据绑定
+                <div>{name}</div>
+                // HTML
+                <div dangerouslySetInnerHTML={rawHtml}></div>
+                // 表达式
+                <div>{ ok ? 'YES' : 'NO' }</div>
+                // 属性
+                <div id={dynamicId}></div>
+                <a href={url}>链接</a>
+                <div className={'item ' + foo}></div>
+                <div style={{marginTop: 10}}></div>
+                // 过滤
+                <div title={filter(rawTitle)}>{ filterB( filterA(date) ) }</div>
+                // 事件
+                <a onClick="doSomething">...</a>
+                <foo onAction="onAction"></foo>
+              )
+            }
+          }
+          ```
+
+          note:  JSX, 一种 JavaScript 的语法扩展。JSX 用来描述用户界面。
+
+          --
+          #### JSX语法 —— Vue
+
+          ```html
+          <script type="x-template" id="app" class="app">
+              <div>{{ msg }}</div>
+          < /script>
+          ```
+
+          ```js
+          new Vue({
+            el: '#app',
+            template: `<div id="root">{{ msg }}</div>`,
+            data: {
+              msg: 'hello jsx'
+            },
+            render (h) { // h = this.$createElement
+              // return h('div', { attrs: {id: 'root'} }, [this.msg])
+
+              return (
+                <div id='root'>{this.msg}</div>
+              )
+            }
+          })
+          ```
+          note: 优先级：render > template > el
+
+          --
+          #### JSX 语法区别
+
+          ```js
+          // React
+          React.createElement(type, props, ...children)
+          
+          // Vue
+          this.$createElement(
+            type, // {String | Object | Function}
+            data, // {Object}，一个包含模板相关属性的数据对象（嵌套对象）
+            children // {String | Array}
+          )
+
+
+          // Vue data
+          {
+            // 和`v-bind:class`一样的 API
+            'class': {
+              foo: true
+            },
+            // 和`v-bind:style`一样的 API
+            style: {
+              fontSize: '14px'
+            },
+            // 正常的 HTML 特性
+            attrs: {
+              id: 'foo'
+            },
+            // 组件 props
+            props: {
+              myProp: 'bar'
+            },
+            // DOM 属性
+            domProps: {
+              innerHTML: 'baz'
+            },
+            // 事件监听器
+            on: {
+              click: this.clickHandler
+            },
+            // 仅对于组件，用于监听原生事件，而不是组件内部使用 `this.$emit` 触发的事件
+            nativeOn: {
+              click: this.nativeClickHandler
+            },
+            // 其他特殊顶层属性
+            key: 'myKey',
+            ref: 'myRef'
+            // ...
+          }
+          ```
+
+          <p class="link">
+            <a href="https://github.com/babel/babel/tree/master/packages/babel-plugin-transform-react-jsx">babel-plugin-transform-react-jsx</a>
+          </p>
+          <p class="link">
+            <a href="https://github.com/vuejs/babel-plugin-transform-vue-jsx">babel-plugin-transform-vue-jsx</a>
+          </p>
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 条件、列表渲染 —— Vue
+
+          ```
+          <template>
+            <div v-show="show">foo</div>
+            <div>foo</div>
+            <div style="display: none">foo</div>
+          
+
+            <div v-if="foo">foo</div>
+            <div v-else-if="bar">bar</div>
+            <div v-else>other</div>
+          
+            
+            <ul>
+              <li v-for="(item, index) of items" :key="item">
+                {{ index }}, {{ item }}
+              </li>
+            </ul>
+
+
+            <ul>
+              <li v-for="(value, key, index) in obj" :key="key">
+                {{ index }}, {{ key }}, {{ value }}
+              </li>
+            </ul>
+          </template>
+          ```
+          
+          --
+          #### 条件、列表渲染 —— React
+
+          ```js
+          render () {
+            // define: show, foo, bar, items, obj
+            return (
+              { show ?
+                <div>foo</div>
+                : <div style={{ display: 'none'}}>foo</div>
+              }
+            
+
+              { foo
+                ? <div>foo</div>
+                : bar
+                  ? <div>bar</div>
+                  : <div>other</div>
+              }
+            
+
+              <ul>
+                { items.map((item, index) => (
+                  <li key={item}>{ index }, { item }</li>
+                )) }
+              </ul>
+
+
+              <ul>
+                { Object.keys(obj).map((key, index) => (
+                  <li key={key}>{ index }, { key }, { obj[key] }</li>
+                )) }
+              </ul>
+            )
+          }
+          ```
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 组件定义 —— Vue
+
+          ```
+          // 注册全局组件
+          Vue.component('my-component', { /* 组件选项对象 */ })
+
+          const Child = {
+            template: '<div>A custom component!</div>'
+          }
+          
+          new Vue({
+            // ...
+            components: { // 注册局部组件
+              // <my-child /> 将只在父组件模板中可用
+              'my-child': Child
+            }
+          })
+          ```
+
+          --
+          ###### 单文件组件
+          ![](./images/hello.vue.png)
+
+          --
+          #### 组件定义 —— React
+
+          ```js
+          // 函数组件，无状态
+          function Welcome(props) {
+            return <h1>Hello, {props.name}</h1>
+          }
+          ```
+
+          ```js
+          // 类组件
+          class Welcome extends React.Component {
+            constructor (props) {
+              super(props)
+              this.state = {
+                age: ''
+              }
+            }
+
+            render() {
+              return <h1>Hello, {this.props.name}, {this.state.age}</h1>
+            }
+          }
+          ```
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 组件内部状态 —— Vue
+
+          ```
+          <template>
+            <div class="person">
+              <p>{{name}} - {{age}}</p>
+              <button @click="onAdd">add</button>
+            </div>
+          </template>
+
+          <script>
+            export default {
+              data () {
+                return {
+                  name: 'Tom',
+                  age: 18
+                }
+              },
+              methods: {
+                onAdd () {
+                  this.age++
+                }
+              }
+            }
+          < /script>
+          ```
+
+          --
+          #### 组件内部状态 —— React
+
+          ```js
+          class Person extends React.Component {
+            // constructor (props) {
+            //   super(props);
+            //   this.state = {
+            //     name: 'tom',
+            //     age: 18
+            //   };
+            // }
+
+            // 实例属性
+            state = {
+              name: 'tom',
+              age: 18
+            }
+          
+            onAdd = () => {
+              // 属性初始化器语法
+              this.setState({
+                age: this.state.age + 1
+              })
+            }
+          
+            render () {
+              const {name, age} = this.state
+          
+              return (
+                <div className='person'>
+                  <p>{name} - {age}</p>
+                  <button onClick={this.onAdd}>add</button>
+                </div>
+              )
+            }
+          }
+          ```
+          
+          note: 因为 JSX 的特性更接近 JS 而不是 HTML , 所以 React DOM 使用 小驼峰命名 来定义属性的名称，而不是使用 HTML 的属性名称。
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 表单双向绑定 —— Vue
+
+          ```
+          <template>
+            <div>
+              <p>{{ name }}</p>
+              <input v-model="name">
+              
+              相当于以下的语法糖：
+              <input v-bind:value="name" v-on:input="name = $event.target.value">
+              在组件中相当于
+              <my-input v-bind:value="name" v-on:input="name = arguments[0]"></my-input>
+            </div>
+          </template>
+
+          <script>
+            export default {
+              data () {
+                return {
+                  name: ''
+                }
+              }
+            }
+          < /script>
+          ```
+          note: v-bind 指令可以用于响应式地更新 HTML 属性；
+          
+          v-on 指令，它用于监听 DOM 事件。
+
+          --
+          #### 表单双向绑定 —— React
+
+          ```js
+          class Foo extends React.Component {
+            state = {
+              name: ''
+            }
+
+            onChange = (e) => {
+              this.setState({
+                name: e.target.value
+              })
+            }
+          
+            render () {
+              return (
+                <div>
+                  <p>{{ name }}</p>
+                  <input value={this.state.value} onChange={this.onChange} />
+                </div>
+              )
+            }
+          }
+          ```
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 响应式原理 —— Vue
+
+          ```
+          <span id="name"></span>
+          <span id="age"></span>
+          <input id="input" />
+
+          let data = { name: 'Andy', age: 17 }
+          // let vm = new Vue({ data, ... })
+          let vm = {}
+
+          Object.keys(data).forEach(function (key) {
+            Object.defineProperty(vm, key, {
+              get() {
+                return document.getElementById(key).innerHTML
+              },
+              set(name) {
+                document.getElementById(key).innerHTML = name
+              }
+            });
+
+            vm[key] = data[key]
+          });
+
+          vm.name = 'Lilei'
+          vm.age = 18
+
+          document.getElementById('input').addEventListener('input', function (event) {
+            vm.name = event.target.value
+          })
+          ```
+
+          <p class="link">
+            <a href="https://cn.vuejs.org/v2/guide/reactivity.html">响应式原理</a>
+          </p>
+
+          --
+          #### diff
+
+          ![](./images/vue-diff.png)
+          
+          - 只会在同层级进行比较, 不会跨层级比较。
+          - 两个不同类型的元素将产生不同的树。
+          - 对于同一层级的同组子节点，添加唯一 key 进行区分。
+
+          <p class="link">
+            <a href="https://github.com/aooy/blog/issues/2">解析vue2.0的diff算法</a>
+          </p>
+          <p class="link">
+            <a href="https://zhuanlan.zhihu.com/purerender/20346379">不可思议的 react diff</a>
+          </p>
+
+          note: 意义：减少不必要的DOM操作，提高性能；抽象DOM操作。
+          建议不要进行 DOM 节点跨层级的操作。
+          sameVnode：key相同、tag标签名相同。
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 变化侦测 —— Vue
+
+          ```js
+          this.key = value
+
+          this.$set( target, key, value )
+          Vue.set( target, key, value )
+          ```
+
+          - 对象属性的添加或删除
+          - 利用索引直接设置一个数组项的值
+          - 修改数组的长度时
+          - 删除数组的一个元素
+
+          ```js
+          Vue.nextTick(callback)
+          this.$nextTick(callback)
+          ```
+
+          - Vue 异步执行 DOM 更新。
+          - 只要观察到数据变化，Vue 将开启一个队列，并缓冲在同一事件循环中发生的所有数据改变。
+
+          --
+          #### 状态更新 —— React
+
+          ```
+          this.setState(object, [callback])
+          
+          this.setState((prevState) => newState, [callback])
+          ```
+
+          - setState() 引起4个更新生命周期函数依次被调用。
+          - 除非 `shouldComponentUpdate` 返回false，否则setState()永远都会导致重渲（子组件也会被重绘）。
+          - `setState()`并不总是立刻更新`this.state`的值，其可能是批处理或推迟更新
+          - `setState()` 之后，不能保证立刻拿到改变的结果
+
+          > - 生命周期函数和 syntheticEvent 中，调用setState不会立即更新this.state。
+          > - 通过`addEventListener`添加的事件处理函数，和通过`setTimeout/setInterval`产生的调用，setState调用会立即更新 this.state。
+
+          note: setState意义：驱动UI的更新。
+
+          --
+          #### 运行时性能
+
+          - 在 React 应用中，当某个组件的状态发生变化时，它会以该组件为根，重新渲染整个组件子树。
+          - 如要避免不必要的子组件的重渲染，你需要在所有可能的地方使用 PureComponent，或是手动实现 shouldComponentUpdate 方法。
+          - 在 Vue 应用中，组件的依赖是在渲染过程中自动追踪的，所以系统能精确知晓哪个组件确实需要被重渲染。
+          - 这意味着，未经优化的 Vue 相比未经优化的 React 要快。
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 生命周期 —— Vue
+
+          ![](./images/vue-lifecycle.png)
+
+          --
+          #### 生命周期 —— React
+
+          ![](./images/react-lifecycle.png)
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 父子组件通讯 —— Vue
+
+          ```
+          // Parent.vue
+          <child name='tom' :age='18' @notify="onAdd"></child>
+          
+          // Child.vue
+          <template>
+            <div class='child'>
+              <p>{{ name }</p>
+              <p>{{ age }}</p>
+              <button @click={ $emit('notify', 1) }>add</button>
+            </div>
+          </template>
+          <script>
+            export default {
+              props: ['name', 'age'] // 声明 props
+            }
+          < /script>
+          ```
+
+          ```
+          // 非父子组件的通信
+          const bus = new Vue()
+
+          // 组件 A 中触发事件
+          bus.$emit('id-selected', 1)
+
+          // 在组件 B 中监听事件
+          bus.$on('id-selected', (id) => {
+            // ...
+          })
+          ```
+
+          --
+          #### 父子组件通讯 —— React
+
+          ```js
+          class Parent extends React.Component {
+            onAdd = () => {
+              // ...
+            }
+          
+            render () {
+              return (
+                <Child name='tom' age={18} add={this.onAdd}></Child>
+              )
+            }
+          }
+          
+          class Child extends React.Component {
+            render () {
+              return (
+                <div className='child'>
+                  <p>{ this.props.name }</p>
+                  <p>{ this.props.age }</p>
+                  <button onClick={ this.props.add }>add</button>
+                </div>
+              )
+            }
+          }
+          ```
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 其他特性 —— Vue
+
+          ```js
+          // 计算属性
+          const template = `
+            <div>
+              <input v-model="firstName" />
+              <input v-model="lastName" />
+              <input v-model="fullName" />
+            </div>
+          `
+          
+          export default {
+            template,
+
+            data() {
+              return {
+                firstName: '',
+                lastName: '',
+              }
+            },
+
+            computed: {
+              fullName () {
+                return this.firstName + ' ' + this.lastName
+              },
+
+
+
+              fullName: {
+                get () {
+                  return this.firstName + ' ' + this.lastName
+                },
+                
+                set (newValue) {
+                  var names = newValue.split(' ')
+                  this.firstName = names[0]
+                  this.lastName = names[names.length - 1]
+                }
+              }
+            }
+          }
+          ```
+          note: 计算属性是基于它们的依赖进行缓存的。
+          过渡 & 动画。
+
+          --
+          #### Fiber —— React
+
+          <table>
+            <tr>
+              <td>![](./images/fiber-01.png)</td>
+              <td>![](./images/fiber-02.png)</td>
+            </tr>
+          </table>
+
+          <p class="link">
+            <a href="https://www.youtube.com/watch?v=7HSd1sk07uU&list=PLb0IAmt7-GS3fZ46IGFirdqKTIxlws7e0">React Conf</a>
+          </p>
+
+          note: 更新过程是同步的，主线程一直被占用，可能会导致性能问题。
+          
+          Virtual Call Stack：允许渲染进程分段完成。
+
+          --
+          ![](./images/fiber-03.png)
+
+          note:优先级更高的任务会被主线程优先执行，而低优先级任务则会作废。
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          #### 完整模板 —— Vue
+
+          ```
+          <style scoped lang="sass">
+            /* write here */
+            /* .title[data-v-f3f3eg9]{} */
+          </style>
+          <style src="./parent.css"></style>
+
+          <template lang="jade">
+            <div class="title" data-v-f3f3eg9>
+              <child></child>
+            </div>
+          </template>
+
+          <script lang="coffee">
+            import Child from './Child'
+
+            export default {
+              // 数据
+              props: {},
+              data () {},
+              computed: {},
+              watch: {},
+
+              methods: {},
+
+              // DOM
+              // el: "#app",
+              // template: "<span>{{ message }}</span>",
+              render (h) {},
+
+              // 生命周期函数
+              beforeCreate: "Vue实例初始化之后，data observer和event/watcher事件被配置之前",
+              created: "Vue实例初始化以及data observer和event/watcher事件被配置之后",
+              beforeMount: "挂载开始之前被调用，此时render()首次被调用",
+              mounted: "el被新建的vm.$el替换，并挂载到实例上之后调用",
+              beforeUpdate: "数据更新时调用，虚拟DOM重新渲染和打补丁之前",
+              updated: "数据更改导致虚拟DOM重新渲染和打补丁之后被调用",
+              activated: "keep-alive组件激活时调用",
+              deactivated: "keep-alive组件停用时调用",
+              beforeDestroy: "实例销毁之前调用，Vue实例依然可用",
+              destroyed: "Vue实例销毁后调用，事件监听和子实例全部被移除，释放系统资源",
+              
+              // 资源
+              directives: "包含Vue实例可用指令的哈希表",
+              filters: "包含Vue实例可用过滤器的哈希表",
+              components: { // 包含Vue实例可用组件的哈希表
+                Child
+              }
+            }
+          < /script>
+          ```
+
+          note: 最后一个 script / template 生效，多个 style 共存
+
+          --
+          #### 完整模板 —— React
+          
+          ```
+          import React from 'react'
+          import PropTypes from 'prop-types'
+          import Child from './Child'
+          import './styles.css'
+
+          class Parent extends React.Component {
+            state = {
+              // 初始状态
+            }
+
+            constructor (props) {}
+            componentWillMount () {}
+            componentDidMount () {}
+            componentWillReceiveProps (nextProps) {}
+            shouldComponentUpdate (nextProps, nextState) {}
+            componentWillUpdate (nextProps, nextState) {}
+            componentDidUpdate (prevProps, prevState) {}
+            componentWillUnmount () {}
+            componentDidCatch (error, info) {}
+
+            handleChange (arg, event) {
+              this.setState(prevState => newState)
+            }
+
+            handleChange2 = () => {
+              // this
+            }
+
+            render() {
+              const { message } = this.props
+
+              return (
+                <Child
+                  msg={message}
+                  // onChange={(event) => this.handleChange(arg, event)}
+                  // onChange={this.handleChange.bind(this, arg)}
+                  onChange={this.handleChange2}
+                />
+              )
+            }
+          }
+
+          Parent.PropTypes = {
+            message: PropTypes.object.isRequired
+          }
+
+          Parent.defaultProps = {
+            message: 'default'
+          }
+
+          export default Parent
+          ```
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+          ### 总结
+
+          <table>
+            <tr>
+              <th></th>
+              <th>Vue</th>
+              <th>React</th>
+            </tr>
+            <tr>
+              <td>共同点</td>
+              <td colspan="2">
+                <div>响应式、Virtual DOM、组件化</div>
+                路由、状态管理、服务端渲染、原生渲染
+              </td>
+            </tr>
+            <tr>
+              <td>不同点</td>
+              <td>
+                <div>多种使用方式，适应性强</div>
+                <div>单文件组件，灵活的文件组织方式</div>
+                <div>高效变更检测，虚拟DOM，默认性能优化</div>
+                <div>构建简单，开箱即用</div>
+              </td>
+              <td>
+                <div>js完整能力，灵活，思维的创新</div>
+                <div>JSX 是把双刃剑</div>
+                <div>社区活跃度，庞大的生态</div>
+              </td>
+            </tr>
+            <tr>
+              <td>未来</td>
+              <td>
+                <div>React v16</div>
+                <div>React Fiber</div>
+                <div>componentDidCatch</div>
+                <div>异步渲染调度?</div>
+              </td>
+              <td>
+                <div>Vue 3.x</div>
+                <div>ES6 Proxy</div>
+                > IE 11
+              </td>
+            </tr>
+          </table>
+
+          note:解放了UI，应对更复杂应用。侵入性小。
+
+          对 React-like 库的影响。
+        </script>
+      </section>
+
+      <section data-markdown data-separator="---" data-separator-vertical="--">
+        <script type="text/template">
+        # THE END!
+        ###### Thank You
+        </script>
+      </section>
+    </div>
+  </div>
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.js"></script>
+  <script>
+    // More info about config & dependencies:
+    // - https://github.com/hakimel/reveal.js#configuration
+    // - https://github.com/hakimel/reveal.js#dependencies
+    Reveal.initialize({
+      dependencies: [
+        { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+        { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+        { src: 'plugin/zoom-js/zoom.js', async: true },
+        { src: 'plugin/notes/notes.js', async: true }
+      ],
+      width: "90%",
+      height: "90%",
+      margin: 0,
+      minScale: 1,
+      maxScale: 1,
+      progress: false,
+      history: true,
+      controls: true,
+      controlsTutorial: true,
+      controlsLayout: 'bottom-right',
+    	controlsBackArrows: 'faded',
+      transition: 'slide'
+    });
+  </script>
+</body>
+
+</html>
