@@ -12,7 +12,7 @@
   <!-- Printing and PDF exports -->
   <style>
     .reveal h1 { padding-top: 1.5em; font-size: 2.6em;}
-    .reveal pre code { max-height: 650px;}
+    .reveal pre code { max-height: 640px;}
     .reveal .slides > section, .reveal .slides > section > section { bottom: 0; padding-bottom: 0;}
     .reveal section img { max-height: 600px;}
     .reveal .link { margin: 0 auto; width: 90%; font-size: 16px; text-align: left; }
@@ -527,12 +527,24 @@
           <template>
             <div>
               <p>{{ name }}</p>
-              <input v-model="name">
-              
-              相当于以下的语法糖：
-              <input v-bind:value="name" v-on:input="name = $event.target.value">
-              在组件中相当于
-              <my-input v-bind:value="name" v-on:input="name = arguments[0]"></my-input>
+              <input v-model="name" type="text">
+              <input v-model.lazy.trim="name" type="text">
+              <input v-model.number="age" type="number">
+
+              <input v-model="picked" value="1" type="radio">
+              <input v-model="picked" value="2" type="radio">
+
+              <input v-model="toggle" true-value="yes" false-value="no" type="checkbox">
+
+              <input v-model="sex" value="male" type="checkbox">
+              <input v-model="sex" value="female" type="checkbox">
+
+              <select v-model="selected" multiple>
+                <option disabled value="">请选择</option>
+                <option value="1">A</option>
+                <option value="2">B</option>
+                <option value="3">C</option>
+              </select>
             </div>
           </template>
 
@@ -540,15 +552,12 @@
             export default {
               data () {
                 return {
-                  name: ''
+                  // ...
                 }
               }
             }
           < /script>
           ```
-          note: v-bind 指令可以用于响应式地更新 HTML 属性；
-          
-          v-on 指令，它用于监听 DOM 事件。
 
           --
           #### 表单双向绑定 —— React
@@ -559,9 +568,16 @@
               name: ''
             }
 
-            onChange = (e) => {
+            handleChange = (e) => {
+              const target = event.target
+              const name = target.name
+              const value = target.type === 'checkbox' ? target.checked : target.value
+              // value：type="text"、<textarea>
+              // checked：type="checkbox"、type="radio"
+              // selected：<select>
+
               this.setState({
-                name: e.target.value
+                [name]: value
               })
             }
           
@@ -569,12 +585,18 @@
               return (
                 <div>
                   <p>{{ name }}</p>
-                  <input value={this.state.value} onChange={this.onChange} />
+                  <input value={this.state.value} onChange={this.handleChange} />
+
+                  <select value={this.state.value} onChange={this.handleChange}>
+                  // ...
+                  </select>
                 </div>
               )
             }
           }
           ```
+
+          note: 受控组件 & 非受控组件
         </script>
       </section>
 
@@ -590,9 +612,10 @@
           let data = { name: 'Andy', age: 17 }
           // let vm = new Vue({ data, ... })
           let vm = {}
+          let keys = Object.keys(data) // ['name', 'age']
 
-          Object.keys(data).forEach(function (key) {
-            Object.defineProperty(vm, key, {
+          keys.forEach(function (key) {
+            Object.defineProperty(vm, key, { // 存取描述符
               get() {
                 return document.getElementById(key).innerHTML
               },
@@ -616,6 +639,8 @@
             <a href="https://cn.vuejs.org/v2/guide/reactivity.html">响应式原理</a>
           </p>
 
+          note: 属性描述符：数据描述符 & 存取描述符
+
           --
           #### diff
 
@@ -633,7 +658,9 @@
           </p>
 
           note: 意义：减少不必要的DOM操作，提高性能；抽象DOM操作。
+
           建议不要进行 DOM 节点跨层级的操作。
+
           sameVnode：key相同、tag标签名相同。
         </script>
       </section>
@@ -659,7 +686,7 @@
           this.$nextTick(callback)
           ```
 
-          - Vue 异步执行 DOM 更新。
+          - Vue 异步执行 DOM 更新
           - 只要观察到数据变化，Vue 将开启一个队列，并缓冲在同一事件循环中发生的所有数据改变。
 
           --
@@ -671,13 +698,13 @@
           this.setState((prevState) => newState, [callback])
           ```
 
-          - setState() 引起4个更新生命周期函数依次被调用。
+          - setState 调用引起4个生命周期函数依次被调用。
           - 除非 `shouldComponentUpdate` 返回false，否则setState()永远都会导致重渲（子组件也会被重绘）。
           - `setState()`并不总是立刻更新`this.state`的值，其可能是批处理或推迟更新
           - `setState()` 之后，不能保证立刻拿到改变的结果
 
           > - 生命周期函数和 syntheticEvent 中，调用setState不会立即更新this.state。
-          > - 通过`addEventListener`添加的事件处理函数，和通过`setTimeout/setInterval`产生的调用，setState调用会立即更新 this.state。
+          > - 通过 `addEventListener`添加的事件处理函数，和通过 `setTimeout/setInterval`产生的调用，setState调用会立即更新 this.state。
 
           note: setState意义：驱动UI的更新。
 
@@ -817,10 +844,11 @@
           }
           ```
           note: 计算属性是基于它们的依赖进行缓存的。
-          过渡 & 动画。
+          
+          过渡 & 动画 & 自定义指令 & 插件。
 
           --
-          #### Fiber —— React
+          #### React Fiber
 
           <table>
             <tr>
